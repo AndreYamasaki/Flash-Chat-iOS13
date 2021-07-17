@@ -32,9 +32,8 @@ class ChatViewController: UIViewController {
     
     func loadMessage() {
         
-        message = []
-        
-        db.collection(K.FStore.collectionName).getDocuments { (querySnapshot, error) in
+        db.collection(K.FStore.collectionName).addSnapshotListener { (querySnapshot, error) in
+            self.message = []
             if let e = error {
                 print ("Did not get the document: \(e)")
             } else {
@@ -47,14 +46,13 @@ class ChatViewController: UIViewController {
                             
                             DispatchQueue.main.async {
                                 self.tableView.reloadData()
-                            }
-                        }
-                        
-                    }
-                }
-            }
-        }
-    }
+                            } //DispatchQueue bracket
+                        } // if let messageSender bracket
+                    } // for loop bracket
+                } // if let snapshotDocuments bracker
+            } //else bracket
+        } //getDocuments() closure bracket
+    } //loadMessage() bracket
     
     @IBAction func sendPressed(_ sender: UIButton) {
         
