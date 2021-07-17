@@ -16,11 +16,7 @@ class ChatViewController: UIViewController {
     
     let db = Firestore.firestore()
     
-    var message: [Message] = [
-        Message(sender: "1@2.com", body: "hey"),
-        Message(sender: "a@b.com", body: "Hello"),
-        Message(sender: "1@2.com", body: "Whats up")
-    ]
+    var message: [Message] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -29,7 +25,35 @@ class ChatViewController: UIViewController {
         title = K.appName
         tableView.register(UINib(nibName: K.cellNibName, bundle: nil), forCellReuseIdentifier: K.cellIdentifier)
         navigationItem.hidesBackButton = true
+        
+        loadMessage()
 
+    }
+    
+    func loadMessage() {
+        
+        message = []
+        
+        db.collection(K.FStore.collectionName).getDocuments { (querySnapshot, error) in
+            if let e = error {
+                print ("Did not get the document: \(e)")
+            } else {
+                if let snapshotDocuments = querySnapshot?.documents {
+                    for doc in snapshotDocuments {
+                        let data = doc.data()
+                        if let messageSender = data[K.FStore.senderField] as? String, let messageBody = data[K.FStore.bodyField] as? String {
+                            let newMessage = Message(sender: messageSender, body: messageBody)
+                            self.message.append(newMessage)
+                            
+                            DispatchQueue.main.async {
+                                self.tableView.reloadData()
+                            }
+                        }
+                        
+                    }
+                }
+            }
+        }
     }
     
     @IBAction func sendPressed(_ sender: UIButton) {
@@ -68,7 +92,7 @@ extension ChatViewController: UITableViewDataSource {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: K.cellIdentifier, for: indexPath) as! MessageCell
         cell.label.text = message[indexPath.row].body
-        cell.detailTextLabel?.text = message[indexPath.row].sender
+//        cell.detailTextLabel?.text = message[indexPath.row].sender
         
         return cell
     }
