@@ -16,7 +16,7 @@ class ChatViewController: UIViewController {
     
     let db = Firestore.firestore()
     
-    var message: [Message] = []
+    var messages: [Message] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -35,7 +35,7 @@ class ChatViewController: UIViewController {
         db.collection(K.FStore.collectionName)
             .order(by: K.FStore.dateField)
             .addSnapshotListener { (querySnapshot, error) in
-            self.message = []
+            self.messages = []
             if let e = error {
                 print ("Did not get the document: \(e)")
             } else {
@@ -44,8 +44,7 @@ class ChatViewController: UIViewController {
                         let data = doc.data()
                         if let messageSender = data[K.FStore.senderField] as? String, let messageBody = data[K.FStore.bodyField] as? String {
                             let newMessage = Message(sender: messageSender, body: messageBody)
-                            self.message.append(newMessage)
-//                            try? self.message.sorted(by: <#T##(Message, Message) throws -> Bool#>)
+                            self.messages.append(newMessage)
                             
                             DispatchQueue.main.async {
                                 self.tableView.reloadData()
@@ -89,15 +88,30 @@ extension ChatViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
-        return message.count
+        return messages.count
     }
     
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
+        let message = messages[indexPath.row]
+        
         let cell = tableView.dequeueReusableCell(withIdentifier: K.cellIdentifier, for: indexPath) as! MessageCell
-        cell.label.text = message[indexPath.row].body
-//        cell.detailTextLabel?.text = message[indexPath.row].sender
+        cell.label.text = message.body
+        
+        //current user
+        if message.sender == Auth.auth().currentUser?.email {
+            cell.leftImageView.isHidden = true
+            cell.rightImageView.isHidden = false
+            cell.messageBubble.backgroundColor = UIColor(named: K.BrandColors.lightPurple)
+            cell.label.textColor = UIColor(named: K.BrandColors.purple)
+        //user's friend
+        } else{
+            cell.rightImageView.isHidden = true
+            cell.leftImageView.isHidden = false
+            cell.messageBubble.backgroundColor = UIColor(named: K.BrandColors.purple)
+            cell.label.backgroundColor = UIColor(named: K.BrandColors.lightPurple)
+        }
         
         return cell
     }
