@@ -48,6 +48,8 @@ class ChatViewController: UIViewController {
                             
                             DispatchQueue.main.async {
                                 self.tableView.reloadData()
+                                let indexPath = IndexPath(row: self.messages.count - 1, section: 0)
+                                self.tableView.scrollToRow(at: indexPath, at: .top, animated: false)
                             } //DispatchQueue bracket
                         } // if let messageSender bracket
                     } // for loop bracket
@@ -68,6 +70,9 @@ class ChatViewController: UIViewController {
                     print("Error adding document: \(e)")
                 } else {
                     print("Data saved")
+                    DispatchQueue.main.async {
+                        self.messageTextfield.text = ""
+                    }
                 }
             }
         }
@@ -110,7 +115,7 @@ extension ChatViewController: UITableViewDataSource {
             cell.rightImageView.isHidden = true
             cell.leftImageView.isHidden = false
             cell.messageBubble.backgroundColor = UIColor(named: K.BrandColors.purple)
-            cell.label.backgroundColor = UIColor(named: K.BrandColors.lightPurple)
+            cell.label.textColor = UIColor(named: K.BrandColors.lightPurple)
         }
         
         return cell
