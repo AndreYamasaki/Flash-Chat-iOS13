@@ -32,7 +32,9 @@ class ChatViewController: UIViewController {
     
     func loadMessage() {
         
-        db.collection(K.FStore.collectionName).addSnapshotListener { (querySnapshot, error) in
+        db.collection(K.FStore.collectionName)
+            .order(by: K.FStore.dateField)
+            .addSnapshotListener { (querySnapshot, error) in
             self.message = []
             if let e = error {
                 print ("Did not get the document: \(e)")
@@ -43,6 +45,7 @@ class ChatViewController: UIViewController {
                         if let messageSender = data[K.FStore.senderField] as? String, let messageBody = data[K.FStore.bodyField] as? String {
                             let newMessage = Message(sender: messageSender, body: messageBody)
                             self.message.append(newMessage)
+//                            try? self.message.sorted(by: <#T##(Message, Message) throws -> Bool#>)
                             
                             DispatchQueue.main.async {
                                 self.tableView.reloadData()
@@ -57,7 +60,11 @@ class ChatViewController: UIViewController {
     @IBAction func sendPressed(_ sender: UIButton) {
         
         if let messageBody = messageTextfield.text, let messageSender = Auth.auth().currentUser?.email {
-            db.collection(K.FStore.collectionName).addDocument(data: [K.FStore.senderField: messageSender, K.FStore.bodyField: messageBody]) { error in
+            db.collection(K.FStore.collectionName).addDocument(data: [
+                K.FStore.senderField: messageSender,
+                K.FStore.bodyField: messageBody,
+                K.FStore.dateField: Date().timeIntervalSince1970
+            ]) { error in
                 if let e = error {
                     print("Error adding document: \(e)")
                 } else {
